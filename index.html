@@ -45,7 +45,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:clamp(22px,3.2vw,32px)
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .chip:focus-visible,th button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .frame{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
-table{border-collapse:collapse;width:100%;min-width:1180px;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;min-width:1420px;font-variant-numeric:tabular-nums}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 tbody tr:last-child td{border-bottom:0}
 tbody tr:hover td{background:var(--accent-soft)}
@@ -79,6 +79,17 @@ td.num{white-space:nowrap}
 .notes p{margin:0}
 .gone{border:1px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--muted)}
 .gone a{color:var(--accent)}
+.tag.x{background:var(--low-soft);color:var(--low);border-color:transparent}
+tr.off td{opacity:.6}
+td.note{min-width:220px}
+.note textarea{display:block;width:100%;min-height:64px;resize:vertical;font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.note textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.note .saved{font-size:11px;color:var(--muted);min-height:1.3em;display:block;margin-top:3px}
+.del{font:inherit;font-size:12.5px;margin-top:6px;border:1px solid var(--line);background:var(--surface);color:var(--low);border-radius:6px;padding:4px 10px;cursor:pointer}
+.del:hover{background:var(--low-soft);border-color:transparent}
+.del:focus-visible,.restore button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.restore{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.restore button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--surface);color:var(--accent);border-radius:999px;padding:3px 10px;cursor:pointer}
 @media (prefers-reduced-motion: no-preference){tbody tr td{transition:background .12s}}
 </style>
 
@@ -87,12 +98,14 @@ td.num{white-space:nowrap}
 <div class="wrap">
   <header>
     <h1>Квартиры на покупку: цены и аренда</h1>
-    <p class="lead">21 объявление с ЦИАН (север и северо-запад Москвы, плюс Пресня). Оценка аренды сделана по реальным объявлениям о долгосрочной аренде на ЦИАН на 3 ноября 2026: в том же доме и у ближайшей станции метро, с той же комнатностью и площадью ±20%. Нажмите на заголовок колонки, чтобы отсортировать.</p>
+    <p class="lead">Объявления с ЦИАН: север и северо-запад Москвы, плюс Пресня. Наличие объявлений проверено 4 ноября 2026. Оценка аренды сделана по реальным объявлениям о долгосрочной аренде на ЦИАН: в том же доме и у ближайшей станции метро, с той же комнатностью и площадью ±20%. Нажмите на заголовок колонки, чтобы отсортировать. Комментарии и удалённые строки сохраняются в этом браузере.</p>
   </header>
 
   <section class="kpis" id="kpis" aria-label="Сводка"></section>
 
   <div class="controls" id="filters" role="group" aria-label="Фильтр по округу"><span class="lbl">Округ</span></div>
+
+  <div class="restore" id="restore" hidden></div>
 
   <div class="frame">
     <table id="tbl">
@@ -106,6 +119,7 @@ td.num{white-space:nowrap}
         <th data-k="rent" class="num"><button>Аренда / мес</button></th>
         <th data-k="yield" class="num"><button>Доходность</button></th>
         <th>Откуда оценка аренды</th>
+        <th>Комментарий</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -131,7 +145,7 @@ const D=[
 {id:334989270,rooms:2,area:67.1,kitchen:20,floor:"12/29",year:null,mat:"монолит",rep:"Без отделки",furn:false,price:30500000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"ул. Генерала Глаголева, 9к1",jk:"ЖК Трилогия Кристалл",m:[["Бульвар Генерала Карбышева","27303F","п",7],["Народное Ополчение","7ACDCE","т",5]],tags:["Сдача I кв. 2027","Нужен ремонт"],rent:[120,130,145],basis:"Оценка после ремонта. У м. Карбышева 2-комн. 54–80 м²: медиана 115 тыс., 1 923 ₽/м² (≈129 тыс. на эту площадь). Новый ЖК бизнес-класса и кухня 20 м² дают надбавку к рынку."},
 {id:335149813,rooms:2,area:64,kitchen:12.9,floor:"8/20",year:2002,mat:"монолит",rep:"Дизайнерский",furn:false,price:29500000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"бул. Генерала Карбышева, 14",m:[["Бульвар Генерала Карбышева","27303F","п",6],["Народное Ополчение","7ACDCE","п",18]],rent:[100,110,120],basis:"У м. Карбышева 2-комн. 51–77 м²: медиана 105 тыс., 1 839 ₽/м² (≈118 тыс.). 6 мин до метро и дизайнерский ремонт, но квартира без мебели."},
 {id:324154181,rooms:2,area:59,kitchen:null,floor:"2/18",year:null,mat:"—",rep:"Качественный (по описанию)",furn:null,price:31500000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"Карамышевская наб., 36",jk:"ЖК Wellton Park",m:[["Мнёвники","7ACDCE","п",14],["Народное Ополчение","7ACDCE","п",18]],tags:["Евро-3"],rent:[100,110,120],basis:"В этом доме сдаются 2-комн. 55 м² за 100 тыс. и 67 м² за 115 тыс. У м. Мнёвники медиана 117,5 тыс. (24 объявления). 2-й этаж немного снижает ставку."},
-{id:335219096,rooms:2,area:52.6,kitchen:11,floor:"16/17",year:2014,mat:"монолит",rep:"Дизайнерский",furn:true,price:30000000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"просп. Маршала Жукова, 37к2",jk:"ЖК Wellton Park",m:[["Народное Ополчение","7ACDCE","п",11],["Бульвар Генерала Карбышева","27303F","п",16]],rent:[90,100,115],basis:"У м. Народное Ополчение 2-комн. 42–63 м²: медиана 88 тыс. В доме сдаётся 2-комн. 65 м² за 135 тыс. Угловая, дизайнерский ремонт и мебель — выше медианы."},
+{id:335219096,removed:"Снято с публикации 4 ноября",rooms:2,area:52.6,kitchen:11,floor:"16/17",year:2014,mat:"монолит",rep:"Дизайнерский",furn:true,price:30000000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"просп. Маршала Жукова, 37к2",jk:"ЖК Wellton Park",m:[["Народное Ополчение","7ACDCE","п",11],["Бульвар Генерала Карбышева","27303F","п",16]],rent:[90,100,115],basis:"У м. Народное Ополчение 2-комн. 42–63 м²: медиана 88 тыс. В доме сдаётся 2-комн. 65 м² за 135 тыс. Угловая, дизайнерский ремонт и мебель — выше медианы."},
 {id:333503281,rooms:3,area:69,kitchen:6.5,floor:"7/9",year:1966,mat:"кирпич",rep:"Косметический",furn:true,price:33900000,okrug:"ЦАО",raion:"Пресненский",addr:"ул. Красная Пресня, 11",m:[["Краснопресненская","800000","п",4],["Баррикадная","94007C","п",8]],rent:[125,140,155],basis:"У м. Краснопресненская 3-комн. 55–83 м²: медиана 152,5 тыс. (52 объявления). Косметический ремонт и кухня 6,5 м² — ниже медианы. Центр и 4 мин до метро держат спрос."},
 {id:333290627,rooms:3,area:60,kitchen:15,floor:"2/5",year:1966,mat:"кирпич",rep:"Дизайнерский",furn:null,price:29300000,okrug:"САО",raion:"Аэропорт",addr:"ул. Верхняя Масловка, 29",m:[["Петровский Парк","7ACDCE","п",10],["Гражданская","BD748F","п",10]],rent:[115,130,145],basis:"У м. Петровский Парк 3-комн. 48–72 м²: медиана 150 тыс., но там много новых ЖК. По району Аэропорт таких 3-комн. медиана 122,5 тыс. Пятиэтажка, зато дизайнерский ремонт."},
 {id:320394727,rooms:2,area:65.33,kitchen:null,floor:"2/55",year:null,mat:"монолит",rep:"Предчистовая",furn:false,price:32828325,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"корпус «Анна»",jk:"ЖК Джойс",m:[["Хорошёво","FA6F9E","п",7],["Полежаевская","94007C","п",14]],tags:["Сдача IV кв. 2027","Нужен ремонт"],rent:[145,160,180],basis:"Оценка после ремонта, доход не раньше 2028. У м. Хорошёво 2-комн. 52–78 м²: медиана 160 тыс., 2 758 ₽/м² — это новые премиальные ЖК рядом. 2-й этаж в 55-этажной башне — минус к ставке."},
@@ -146,7 +160,10 @@ const D=[
 {id:334537071,rooms:2,area:54,kitchen:17.3,floor:"27/37",year:null,mat:"—",rep:"Евроремонт",furn:null,price:28990000,okrug:"САО",raion:"Хорошёвский",addr:"Хорошёвское ш., 12к1",jk:"ЖК Дом на Беговой",m:[["Беговая","94007C","п",3],["Улица 1905 года","94007C","п",20]],tags:["Вид на Сити"],rent:[90,100,110],basis:"В доме 42 объявления об аренде. 2-комн. 51–60 м² сдаются за 79–130 тыс., медиана около 100 тыс. Высокая конкуренция внутри дома."},
 {id:333822086,rooms:2,area:60,kitchen:27,floor:"5/27",year:2022,mat:"монолит",rep:"Без ремонта",furn:false,price:32000000,okrug:"САО",raion:"Хорошёвский",addr:"ул. Зорге, 9к2",jk:"ЖК Рихард",m:[["Полежаевская","94007C","п",11],["Зорге","FA6F9E","п",13]],tags:["Евро-3","Нужен ремонт"],rent:[130,145,160],basis:"Оценка после ремонта. В этом доме сдаются 2-комн. 48–63 м² за 140–155 тыс. (медиана по дому 150 тыс.). Кухня-гостиная 27 м²."},
 {id:334577983,rooms:2,area:55.4,kitchen:8,floor:"5/5",year:1960,mat:"кирпич",rep:"Евроремонт",furn:true,price:25500000,okrug:"ЦАО",raion:"Пресненский",addr:"ул. Литвина-Седого, 2/13",m:[["Улица 1905 года","94007C","п",19],["Москва-Сити","DE9C4E","п",21]],rent:[95,105,115],basis:"У м. Улица 1905 года 2-комн. 44–66 м²: медиана 110 тыс. (111 объявлений). До метро 19 мин, последний этаж пятиэтажки — чуть ниже медианы."},
-{id:335374555,rooms:2,area:60,kitchen:13,floor:"14/17",year:2002,mat:"панель",rep:"Евроремонт",furn:true,price:29500000,okrug:"САО",raion:"Хорошёвский",addr:"ул. Полины Осипенко, 14к1",m:[["ЦСКА","7ACDCE","п",10],["Полежаевская","94007C","п",13]],rent:[95,105,120],basis:"В этом доме сдаётся 2-комн. 60 м² за 90 тыс. У м. ЦСКА медиана 150 тыс., но это новые ЖК на Ходынке. Панельный дом 2002 года."}
+{id:335374555,rooms:2,area:60,kitchen:13,floor:"14/17",year:2002,mat:"панель",rep:"Евроремонт",furn:true,price:29500000,okrug:"САО",raion:"Хорошёвский",addr:"ул. Полины Осипенко, 14к1",m:[["ЦСКА","7ACDCE","п",10],["Полежаевская","94007C","п",13]],rent:[95,105,120],basis:"В этом доме сдаётся 2-комн. 60 м² за 90 тыс. У м. ЦСКА медиана 150 тыс., но это новые ЖК на Ходынке. Панельный дом 2002 года."},
+{id:332510326,rooms:2,area:69.7,kitchen:11.3,floor:"11/18",year:2003,mat:"кирпич",rep:"Дизайнерский",furn:true,price:34000000,okrug:"САО",raion:"Аэропорт",addr:"Ленинградский просп., 76к2",jk:"ЖК Соколиное гнездо",m:[["Сокол","00701A","п",1],["Аэропорт","00701A","п",14]],tags:["2 санузла"],rent:[115,125,140],basis:"У м. Сокол 2-комн. 56–84 м²: медиана 115 тыс., 1 716 ₽/м² (≈120 тыс.). В доме сдаётся 2-комн. 90 м² за 140 тыс. 1 минута до метро, дизайнерский ремонт и мебель — выше медианы."},
+{id:331849447,rooms:2,area:59,kitchen:16.3,floor:"13/24",year:2008,mat:"монолит",rep:"Косметический",furn:null,price:25900000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"ул. Маршала Тухачевского, 49",jk:"ЖК Union Park",m:[["Бульвар Генерала Карбышева","27303F","п",6],["Народное Ополчение","7ACDCE","т",5]],rent:[80,90,100],basis:"В этом доме сдаются 2-комн. 48 и 59,6 м² за 85 тыс. У м. Карбышева 2-комн. 47–71 м²: медиана 90 тыс. (73 объявления). Косметический ремонт."},
+{id:326842863,rooms:3,area:73.5,kitchen:12,floor:"19/23",year:2021,mat:"монолит",rep:"Евроремонт (от застройщика)",furn:false,price:31400000,okrug:"СЗАО",raion:"Хорошёво-Мнёвники",addr:"ул. Генерала Глаголева, 5к1",m:[["Бульвар Генерала Карбышева","27303F","п",12],["Мнёвники","7ACDCE","т",4]],rent:[120,135,145],basis:"В этом доме сдаётся 3-комн. 77 м² за 128 тыс. У м. Карбышева 3-комн. 59–88 м²: медиана 150 тыс., 2 165 ₽/м². Без мебели и с простым ремонтом от застройщика — ниже медианы."}
 ];
 
 D.forEach(d=>{
@@ -168,7 +185,21 @@ const yClass=y=>y>=5?'y-good':y>=4.3?'y-mid':'y-low';
 let sortKey='yield',sortDir=-1,okrug='Все';
 try{const s=JSON.parse(localStorage.getItem('kv-sort')||'null'); if(s){sortKey=s.k;sortDir=s.d;okrug=s.o||'Все'}}catch(e){}
 
+const load=(k,def)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||def}catch(e){return def}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+let notes=load('kv-notes',{}), hidden=load('kv-hidden',[]);
+const visible=()=>D.filter(d=>!hidden.includes(d.id));
+
+function restoreBar(){
+  const el=document.getElementById('restore');
+  const gone=D.filter(d=>hidden.includes(d.id));
+  el.hidden=!gone.length;
+  if(!gone.length){el.innerHTML='';return}
+  el.innerHTML=`<span>Удалено: ${gone.length}. Вернуть:</span>`+gone.map(d=>`<button type="button" data-restore="${d.id}">${esc(d.addr)}</button>`).join('')+(gone.length>1?`<button type="button" data-restore="all">Вернуть все</button>`:'');
+}
+
 function kpis(rows){
+  rows=rows.filter(r=>!r.removed);
   const el=document.getElementById('kpis');
   if(!rows.length){el.innerHTML='';return}
   const best=[...rows].sort((a,b)=>b.yield-a.yield)[0];
@@ -184,12 +215,13 @@ function kpis(rows){
 
 function filters(){
   const box=document.getElementById('filters');
+  const V=visible();
   const opts=['Все',...[...new Set(D.map(d=>d.okrug))].sort()];
   box.querySelectorAll('.chip').forEach(c=>c.remove());
   opts.forEach(o=>{
     const b=document.createElement('button');
     b.className='chip';b.type='button';b.id='f-'+o;
-    const n=o==='Все'?D.length:D.filter(d=>d.okrug===o).length;
+    const n=o==='Все'?V.length:V.filter(d=>d.okrug===o).length;
     b.textContent=`${o} · ${n}`;
     b.setAttribute('aria-pressed',o===okrug);
     b.onclick=()=>{okrug=o;save();render()};
@@ -201,20 +233,22 @@ function save(){try{localStorage.setItem('kv-sort',JSON.stringify({k:sortKey,d:s
 
 function render(){
   filters();
-  let rows=D.filter(d=>okrug==='Все'||d.okrug===okrug);
+  restoreBar();
+  let rows=visible().filter(d=>okrug==='Все'||d.okrug===okrug);
   const key=sortKey==='rent'?'rentMid':sortKey;
-  rows.sort((a,b)=>{const x=a[key],y=b[key];return (typeof x==='string'?x.localeCompare(y,'ru'):x-y)*sortDir});
+  rows.sort((a,b)=>{if(!!a.removed!==!!b.removed) return a.removed?1:-1; const x=a[key],y=b[key];return (typeof x==='string'?x.localeCompare(y,'ru'):x-y)*sortDir});
   document.querySelectorAll('th[data-k]').forEach(th=>{
     if(th.dataset.k===sortKey) th.setAttribute('aria-sort',sortDir>0?'ascending':'descending'); else th.removeAttribute('aria-sort');
   });
   kpis(rows);
   document.querySelector('#tbl tbody').innerHTML=rows.map(d=>{
     const tags=[];
+    if(d.removed) tags.push(`<span class="tag x">${esc(d.removed)}</span>`);
     if(d.jk) tags.push(`<span class="tag">${esc(d.jk)}</span>`);
     (d.tags||[]).forEach(t=>tags.push(`<span class="tag${/Сдача|Нужен|2027/.test(t)?' w':''}">${esc(t)}</span>`));
     const facts=[`эт. ${d.floor}`, d.year?`${d.year} г.`:null, d.mat!=='—'?d.mat:null, d.kitchen?`кухня ${String(d.kitchen).replace('.',',')} м²`:null].filter(Boolean).join(' · ');
     const rep=[d.rep, d.furn===true?'с мебелью':d.furn===false?'без мебели':null].filter(Boolean).join(', ');
-    return `<tr>
+    return `<tr${d.removed?' class="off"':''}>
       <td class="t-name"><a href="https://www.cian.ru/sale/flat/${d.id}/" target="_blank" rel="noopener">${esc(d.title)}</a>
         <span class="sub">${esc(d.addr)}</span><span class="sub">${esc(facts)}</span><span class="sub">${esc(rep)}</span>
         ${tags.length?`<div class="tags">${tags.join('')}</div>`:''}</td>
@@ -226,8 +260,34 @@ function render(){
       <td class="num rent"><b>${d.rent[1]} тыс. ₽</b><span class="sub">${d.rent[0]}–${d.rent[2]} тыс.</span></td>
       <td class="num"><span class="yield ${yClass(d.yield)}">${pct(d.yield)}</span><span class="sub">окупаемость ${d.payback.toLocaleString('ru-RU',{maximumFractionDigits:1})} лет</span></td>
       <td class="basis">${esc(d.basis)}</td>
+      <td class="note"><textarea id="note-${d.id}" data-note="${d.id}" aria-label="Комментарий: ${esc(d.addr)}" placeholder="Ваш комментарий…">${esc(notes[d.id]||'')}</textarea>
+        <span class="saved" id="saved-${d.id}"></span>
+        <button type="button" class="del" data-del="${d.id}">Удалить</button></td>
     </tr>`}).join('');
 }
+
+const tbody=document.querySelector('#tbl tbody');
+const timers={};
+tbody.addEventListener('input',e=>{
+  const id=e.target.dataset.note; if(!id) return;
+  clearTimeout(timers[id]);
+  timers[id]=setTimeout(()=>{
+    const v=e.target.value.trim();
+    if(v) notes[id]=e.target.value; else delete notes[id];
+    const ok=store('kv-notes',notes);
+    const s=document.getElementById('saved-'+id); if(s) s.textContent=ok?'Сохранено в этом браузере':'Не удалось сохранить: браузер блокирует хранилище';
+  },400);
+});
+tbody.addEventListener('click',e=>{
+  const id=+e.target.dataset.del; if(!id) return;
+  if(!hidden.includes(id)) hidden.push(id);
+  store('kv-hidden',hidden); render();
+});
+document.getElementById('restore').addEventListener('click',e=>{
+  const v=e.target.dataset.restore; if(!v) return;
+  hidden=v==='all'?[]:hidden.filter(x=>x!==+v);
+  store('kv-hidden',hidden); render();
+});
 
 document.querySelectorAll('th[data-k] button').forEach(b=>b.addEventListener('click',()=>{
   const k=b.parentElement.dataset.k;
